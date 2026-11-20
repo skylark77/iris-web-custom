@@ -15,6 +15,15 @@ original PG12 volume is preserved under a new name, and a cold tarball is
 written to disk before any mutation. You can roll back to v2.4.29 at any
 point until you choose to reclaim the backup.
 
+> **This distribution is not a drop-in upgrade of upstream IRIS.** It keeps
+> investigations (their chat, timelines, notes, tasks, trackers and files),
+> external cases (formerly alerts), users, groups, webhooks, mail and the MCP
+> server. Cases and everything attached to them (IOCs, assets, evidences, case
+> timelines, customers), the DIM modules and the v1 API are removed. Upgrading
+> a v2.4.x database runs migrations that **drop** those tables. The database
+> procedure below still applies, but expect to keep only the data of the
+> modules listed above.
+
 ---
 
 ## 1. Before you start
@@ -109,25 +118,13 @@ What to do:
 - **Audit your integrations before upgrading.** Anything calling a path
   that does not start with `/api/v2/` needs to move. Grep your automation
   for the IRIS hostname and check the paths.
-- **Port to `/api/v2/…`.** Most v1 routes have a v2 counterpart —
-  `POST /api/v2/cases/{case_id}/iocs`, `GET /api/v2/manage/users`, and so
-  on. Browse the full surface at `https://<IRIS_HOSTNAME>/api-docs`, or
-  read `iris-backend/source/app/blueprints/rest/openapi.generated.yaml`.
-- **A few v1 capabilities have no v2 counterpart yet.** The two worth
-  knowing about:
-  - *Bulk CSV import* (`POST /case/ioc/upload`, `/case/assets/upload`,
-    `/case/timeline/events/csv_upload`). The feature itself is still in
-    the UI — v3 parses the CSV in the browser and creates one object per
-    row over v2 — but there is no single-call bulk endpoint for scripts.
-    Automation that posted a CSV blob has to loop over
-    `POST /api/v2/cases/{case_id}/{iocs,assets,events}` instead.
-  - *The case task log* (`POST /case/tasklog/add`), which appended a
-    free-text entry to a case's activity feed.
-    `GET /api/v2/cases/{case_id}/activities` reads the feed, but nothing
-    in v2 writes to it.
-
-  If you depend on one of these, please open an issue so it can be
-  prioritised before v3.0.0 final.
+- **Port to `/api/v2/…`** where the feature still exists — users, groups,
+  webhooks, external cases and investigations, for example
+  `GET /api/v2/manage/users`. Browse the full surface at
+  `https://<IRIS_HOSTNAME>/api-docs`, or read
+  `iris-backend/source/app/blueprints/rest/openapi.generated.yaml`.
+- **Case, IOC, asset and evidence routes have no counterpart**: those modules
+  are removed from this distribution (see the note at the top).
 
 Nothing in the IRIS UI itself uses v1, so this affects external API
 consumers only.
@@ -212,7 +209,6 @@ The variables you **must** add or verify (with brief purpose):
 | `POSTGRES_PORT` | *not set* | `5432` | app + worker DB connection |
 | `POSTGRES_ADMIN_USER` | *not set* | `postgres` | schema/role management on first boot |
 | `POSTGRES_ADMIN_PASSWORD` | *not set* | *unset — must set* | schema/role management |
-| `IRIS_SECURITY_PASSWORD_SALT` | *sometimes set* | *unset — must set* | Flask-Security session hashing |
 | `KEY_FILENAME` / `CERT_FILENAME` | *not set* | `iris_dev_key.pem` / `iris_dev_cert.pem` | nginx TLS material lookup under `certificates/web_certificates/` |
 | `IRIS_CERT_RELOAD_INTERVAL` | n/a | `60` | nginx polls the cert mtime; set `0` to disable |
 | `INTERFACE_HTTPS_PORT` | `443` | `443` | host-side HTTPS port |
@@ -305,8 +301,8 @@ docker compose logs -f app
 
 ### 3.5 Verify
 
-- Log in to the UI and confirm cases, IOCs, users, and customizations are
-  present.
+- Log in to the UI and confirm investigations, external cases, users and
+  customizations are present.
 - Check the new server version:
   ```bash
   docker compose exec db psql -U "$POSTGRES_USER" -d iris_db -c 'SELECT version();'

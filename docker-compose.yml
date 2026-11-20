@@ -64,7 +64,6 @@ services:
       - POSTGRES_SERVER
       - POSTGRES_PORT
       - IRIS_SECRET_KEY
-      - IRIS_SECURITY_PASSWORD_SALT
       # REPLACE the default trust store — the bundle must include
       # system roots too. Opt in by exporting in .env.
       - REQUESTS_CA_BUNDLE
@@ -121,7 +120,6 @@ services:
       - POSTGRES_SERVER
       - POSTGRES_PORT
       - IRIS_SECRET_KEY
-      - IRIS_SECURITY_PASSWORD_SALT
       - IRIS_WORKER
       - LOG_LEVEL
       - REQUESTS_CA_BUNDLE

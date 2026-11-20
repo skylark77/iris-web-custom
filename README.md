@@ -53,8 +53,7 @@ cd iris-web
 git checkout v3.0.0-beta.23
 
 # Copy and edit the environment template — set POSTGRES_PASSWORD,
-# POSTGRES_ADMIN_PASSWORD, IRIS_SECRET_KEY, IRIS_SECURITY_PASSWORD_SALT,
-# and IRIS_HOSTNAME at minimum.
+# POSTGRES_ADMIN_PASSWORD, IRIS_SECRET_KEY and IRIS_HOSTNAME at minimum.
 cp .env.example .env
 
 # Provide a TLS cert + key at certificates/web_certificates/iris_dev_cert.pem
